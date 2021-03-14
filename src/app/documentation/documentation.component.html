@@ -1,8 +1,15 @@
-
 <mat-form-field class="search-field">
   <input matInput placeholder="Search" name="search" autocomplete="0" [(ngModel)]="search">
 </mat-form-field>
 <div class="mat-accordion-container">
+  <div class="info-documentation">
+    <span>
+      Formato delle istruzioni DLX compatibile con il materiale del corso di Calcolatori Elettronici T (Stefano
+      Mattoccia), Corso di Laurea in Ingegneria Informatica, Università di Bologna.<br />
+      Per segnalazioni di errori o suggerimenti:<br /> Stefano Mattoccia: stefano.mattoccia@unibo.it
+  
+    </span>
+  </div>
   <mat-accordion>
     <mat-expansion-panel *ngFor="let instr of documentationFiltered">
       <mat-expansion-panel-header>

@@ -1,0 +1,17 @@
+<h1 style="width:900px" mat-dialog-title>Memory values</h1>
+<mat-dialog-content width="600px">
+  <mat-grid-list cols="5" rowHeight="150px">
+    <mat-grid-tile *ngFor="let el of data.values">
+      <mat-card><h4>{{el.hexAddress}}</h4>
+      <input matInput (input)="onInputChange($event.target.value,el)" value="{{el.value | format:fType}}" minlength="0" maxlength="10" />
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+</mat-dialog-content>
+<mat-button-toggle-group id="fType" name="fType" [(ngModel)]="fType">
+  <mat-button-toggle value="hex" style="width: 50%;margin:10px">Hexadecimal</mat-button-toggle>
+  <mat-button-toggle value="dec" style="width: 50%;margin:10px">Decimal</mat-button-toggle>
+</mat-button-toggle-group>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close (click)="onSubmit()">Ok</button>
+</mat-dialog-actions>

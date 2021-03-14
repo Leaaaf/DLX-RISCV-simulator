@@ -1,0 +1,60 @@
+<mat-dialog-content>
+    <img style="background-color:white" src="{{data.network.getImageName()}}" width="850px"/>
+    <br />
+    <div>
+        <div style="display:inline-block; margin:10px;" *ngIf="data.network.clkType">    
+            <mat-form-field appearance="fill">
+                <mat-label>Clock Type</mat-label>
+                <mat-select [(value)]="data.network.clkType">
+                    <mat-option value="MEMWR*">MEMWR*</mat-option>
+                    <mat-option value="MEMRD*">MEMRD*</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+        <div style="display:inline-block; margin:10px;" *ngIf="data.network.a_set_value">    
+            <mat-form-field appearance="fill">
+                <mat-label>A_SET</mat-label>
+                <mat-select [disabled]="data.isReadOnly" [(value)]="data.network.a_set_value">
+                    <mat-option value="RESET">RESET</mat-option>
+                    <mat-option *ngIf="null != data.network.led" value="CS_A_SET_LED">CS_A_SET_LED</mat-option>
+                    <mat-option *ngIf="null != data.network.startup" value="CS_A_SET_STARTUP">CS_A_SET_STARTUP</mat-option>
+                    <mat-option value="0">0</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+        <div style="display:inline-block; margin:10px;" *ngIf="data.network.a_reset_value">    
+            <mat-form-field appearance="fill">
+                <mat-label>A_RES</mat-label>
+                <mat-select [disabled]="data.isReadOnly" [(value)]="data.network.a_reset_value">
+                    <mat-option value="RESET">RESET</mat-option>
+                    <mat-option *ngIf="null != data.network.led" value="CS_A_RES_LED">CS_A_RES_LED</mat-option>
+                    <mat-option *ngIf="null != data.network.startup" value="CS_A_RES_STARTUP">CS_A_RES_STARTUP</mat-option>
+
+                    <mat-option value="0">0</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <br />
+    <div *ngIf="data.network.cs.length > 0">
+        <b>Chip-Select</b><br />
+        <span *ngFor="let cs of data.network.cs">
+            {{cs.id}} - {{cs.hexAddress}}<br />
+        </span>
+    </div>
+    <br />
+    <div *ngIf="null != data.network.led">
+        <b>LED</b><br />
+        <span *ngIf="data.network.led">ON</span>
+        <span *ngIf="!data.network.led">OFF</span>
+    </div>
+    <div *ngIf="null != data.network.startup">
+        <b>STARTUP</b><br />
+        <span *ngIf="data.network.startup">ON</span>
+        <span *ngIf="!data.network.startup">OFF</span>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Ok</button>
+</mat-dialog-actions>

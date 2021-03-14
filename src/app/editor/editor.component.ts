@@ -1,12 +1,17 @@
 import { animate, group, query, style, transition, trigger } from "@angular/animations";
 import { AfterViewInit, ApplicationRef, Component, EventEmitter, HostListener, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { MatDialog } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { CodemirrorComponent } from '@ctrl/ngx-codemirror';
 import { EditorFromTextArea } from 'codemirror';
 import 'codemirror/addon/selection/active-line';
 import { Subscription } from 'rxjs';
+import { ImageDialogComponent } from '../dialogs/image-dialog.component';
+import { FFDLogicalNetwork } from '../memory/model/ffd-logical-network.js';
+import { LedLogicalNetwork } from '../memory/model/led.logical-network.js';
 import { StartLogicalNetwork } from '../memory/model/start.logical-network.js';
+import { DLXRegisters } from '../registers/dlx.registers.js';
 import { Registers } from '../registers/registers.js';
 import { CodeService } from '../services/code.service.js';
 import { MemoryService } from '../services/memory.service.js';
@@ -21,7 +26,7 @@ import './modes/rv32i.js';
     trigger('showHideTrigger', [
       transition(':enter', [
         group([
-          style({ height: '0'}),
+          style({ height: '0' }),
           animate('200ms ease-out', style({ height: '*' })),
           query('mat-card', [
             style({ transform: 'translateY(-100%)' }),
@@ -44,7 +49,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('codeEditor', { static: false }) codeEditor: CodemirrorComponent;
   @ViewChild('form', { static: false }) form: NgForm;
-  
+
   @Input() public codeService: CodeService;
   @Input() memoryService: MemoryService;
   @Input() registers: Registers;
@@ -61,8 +66,9 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   private running: boolean = false;
   continuousRunning = false;
   errorMessage: string;
-  start: string = 'main';
+  start: string = 'init';
   interval: number = 1000;
+  isInterruptDisabled: boolean = true;
 
   get options() {
     return {
@@ -75,7 +81,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
       viewportMargin: Infinity,
       extraKeys: {
         // associa allo shortcut Ctrl + S la funzione onSave e forza un refresh della view ad Angular.
-        "Ctrl-S": cm => {this.onSave(); this.appRef.tick()}
+        "Ctrl-S": cm => { this.onSave(); this.appRef.tick() }
       }
     };
   }
@@ -88,7 +94,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     return this._pc;
   }
 
-  @Input() 
+  @Input()
   set pc(val: number) {
     if (this.doc && (val != this._pc || !this.running)) {
       let pre = Math.floor(this._pc / 4);
@@ -109,7 +115,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     }
     this._pc = val;
   }
-  
+
   get currentLine(): number {
     return this.pc / 4;
   }
@@ -120,14 +126,14 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   }
 
   get isContinuousRunDisabled(): boolean {
-    if(this.doc)
+    if (this.doc)
       return (this.currentLine >= this.doc.lineCount());
     else
       return false;
   }
 
   get isRunDisabled(): boolean {
-    if(this.doc)
+    if (this.doc)
       return (this.currentLine >= this.doc.lineCount()) || this.continuousRunning;
     else
       return false;
@@ -139,7 +145,8 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private appRef: ApplicationRef,
-    route: ActivatedRoute
+    route: ActivatedRoute,
+    private dialog: MatDialog
   ) {
     try {
       let editor_settings = JSON.parse(window.localStorage.getItem('editor_settings'));
@@ -155,7 +162,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.doc.on("change", (event) => {
       if (this.running) this.onStop();
-      if (this.errorMessage) { this.doc.removeLineClass(this.runnedLine, 'wrap', 'error'); this.errorMessage = undefined;}
+      if (this.errorMessage) { this.doc.removeLineClass(this.runnedLine, 'wrap', 'error'); this.errorMessage = undefined; }
     });
     this.formStatusChangeSub = this.form.statusChanges.subscribe(v => this.formDirtyChange.emit(this.form.dirty));
   }
@@ -165,7 +172,7 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     if (this.timeout) clearTimeout(this.timeout);
     this.onRun();
     this.timeout = setInterval(() => {
-      if(this._pc >= this.codeService.content.split('\n').length * 4) {
+      if (this._pc >= this.codeService.content.split('\n').length * 4) {
         clearTimeout(this.timeout);
       }
       this.onRun();
@@ -177,28 +184,41 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     this.continuousRunning = false;
   }
 
+  startResetSignal() {
+    // WHEN THE APPLICATION START SEND THE RESET SIGNAL TO THE LOGICAL NETWORKS
+    this.memoryService.memory.devices.forEach(el => {
+      if(el.devType.includes("Start"))
+        (el as StartLogicalNetwork).startOp();
+        if(el.devType.includes("Led"))
+        (el as LedLogicalNetwork).startOp();
+        if(el.devType.includes("FF-D"))
+          (el as FFDLogicalNetwork).startOp();
+    });
+  }
+
   onRun() {
     if (!this.running) {
       this.doc.removeLineClass(this.runnedLine, 'wrap', 'error');
       this.errorMessage = undefined;
       this.codeService.interpreter.parseTags(this.codeService.content, this.start);
-      if (this.codeService.editorMode === 'dlx') {
-        (this.memoryService.memory.devices.find(v => v.name == 'Start') as StartLogicalNetwork).a_set();
-      } else {
-        this._pc = this.codeService.interpreter.getTag('start_tag');
-      }
+      this.startResetSignal();
+      this._pc = this.codeService.interpreter.getTag('start_tag');
       this.running = true;
     }
     this.runnedLine = this.currentLine;
     this.currentLine++;
-    try {
+    try {      
       this.codeService.interpreter.run(this.doc.getLine(this.runnedLine), this.registers, this.memoryService.memory);
     } catch (error) {
       this.onStop();
       this.doc.addLineClass(this.runnedLine, 'wrap', 'error');
       this.errorMessage = error.message;
-      console.error(error);
     }
+    
+    this.memoryService.memory.devices.forEach(el => {
+      if(el.devType.includes("Start"))
+        this.isInterruptDisabled = (el as StartLogicalNetwork).startup;
+    });
   }
 
   onStop() {
@@ -214,15 +234,22 @@ export class EditorComponent implements AfterViewInit, OnDestroy {
     this.form.form.markAsPristine();
   }
 
+  onClear() {
+    this.memoryService.clearMemory();
+    this.codeService.clear();
+    this.memoryService.setMemory();
+    this.codeService.load();
+  }
+
   onInterrupt() {
     this.codeService.interpreter.interrupt(this.registers);
   }
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any) {
-      if (this.form.dirty) {
-          $event.returnValue = true;
-      }
+    if (this.form.dirty) {
+      $event.returnValue = true;
+    }
   }
 
   ngOnDestroy() {

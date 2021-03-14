@@ -18,8 +18,12 @@ import { MaterialModule } from './material.module';
 import { MemoryComponent } from './memory/memory.component';
 import { FormatPipe } from './pipes/format.pipe';
 import { RegistersComponent } from './registers/registers.component';
-
-
+import { MatSelectModule, MatIconModule } from '@angular/material';
+import { LogicalNetworkDialogComponent } from './dialogs/logical-network-dialog.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { MemoryAddressDialogComponent } from './dialogs/memory-address-dialog.component';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { ImageDialogComponent } from './dialogs/image-dialog.component';
 
 @NgModule({
    declarations: [
@@ -31,7 +35,10 @@ import { RegistersComponent } from './registers/registers.component';
       MemoryComponent,
       DocumentationComponent,
       MessageDialogComponent,
+      LogicalNetworkDialogComponent,
+      MemoryAddressDialogComponent,
       ConfirmDialogComponent,
+      ImageDialogComponent,
       AboutPageComponent
    ],
    imports: [
@@ -43,11 +50,18 @@ import { RegistersComponent } from './registers/registers.component';
       ReactiveFormsModule,
       MatNativeDateModule,
       HttpClientModule,
-      MaterialModule
+      MatMenuModule,
+      MaterialModule,
+      MatSelectModule,
+      MatIconModule,
+      MatGridListModule
    ],
    entryComponents: [
       MessageDialogComponent,
-      ConfirmDialogComponent
+      ConfirmDialogComponent,
+      MemoryAddressDialogComponent,
+      ImageDialogComponent,
+      LogicalNetworkDialogComponent,
    ],
    providers: [],
    bootstrap: [

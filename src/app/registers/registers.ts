@@ -1,7 +1,7 @@
 export class Registers {
-    pc: number;
-    
-    constructor() {
-        this.pc = 0;
-    }
+  pc: number;
+
+  constructor() {
+    this.pc = 0;
+  }
 }

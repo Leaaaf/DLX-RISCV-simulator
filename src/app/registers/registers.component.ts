@@ -1,7 +1,7 @@
-import { Component, Input } from '@angular/core';
-import { DLXRegisters } from './dlx.registers';
-import { Registers } from './registers';
-import { RV32IRegisters } from './rv32i.registers';
+import {Component, Input} from '@angular/core';
+import {DLXRegisters} from './dlx.registers';
+import {Registers} from './registers';
+import {RV32IRegisters} from './rv32i.registers';
 
 @Component({
   selector: 'app-registers',
@@ -12,7 +12,7 @@ export class RegistersComponent {
 
   @Input() registers: Registers;
 
-  fType: 'dec'|'bin'|'hex' = 'hex'
+  fType: 'dec' | 'bin' | 'hex' = 'hex';
 
   get dlxRegisters(): DLXRegisters {
     return this.registers as DLXRegisters;
@@ -30,6 +30,7 @@ export class RegistersComponent {
     return this.registers.constructor.name === RV32IRegisters.name;
   }
 
-  constructor() { }
+  constructor() {
+  }
 
 }

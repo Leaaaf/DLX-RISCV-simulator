@@ -1,5 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { MainPageComponent } from './main-page.component';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {MainPageComponent} from './main-page.component';
 
 
 describe('MainPageComponent', () => {
@@ -8,9 +8,9 @@ describe('MainPageComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ MainPageComponent ]
+      declarations: [MainPageComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

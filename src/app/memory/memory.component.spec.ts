@@ -1,5 +1,5 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { MemoryComponent } from './memory.component';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {MemoryComponent} from './memory.component';
 
 
 describe('MemoryComponent', () => {
@@ -8,9 +8,9 @@ describe('MemoryComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ MemoryComponent ]
+      declarations: [MemoryComponent]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

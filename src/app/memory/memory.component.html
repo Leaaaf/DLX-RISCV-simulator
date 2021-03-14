@@ -1,54 +1,112 @@
-<span>Memory</span>
-<div class="main-container">
-    <div class="memory">
-        <ng-container *ngFor="let device of memoryService.memory.devices">
-            <div class="dev" matRipple *ngIf="!isLN(device)"
-                [style.left]="((device.min_address/1073741824)*100).toFixed(2)+'%'"
-                [style.right]="(100 - (device.max_address/1073741824)*100).toFixed(2)+'%'"
-                (click)="selected == device ? selected = null : selected = device"
-                [class.selected]="selected == device"
-                [matTooltip]="device.size"
-                matTooltipPosition="above"
-                matTooltipClass="device-size"
-                >
-                <span>{{ device.name }}</span>
-            </div>
-            <div class="ln" *ngIf="isLN(device)"
-                [style.left]="((device.min_address/1073741824)*100).toFixed(2)+'%'"
-                (click)="selected == device ? selected = null : selected = device"
-                [class.selected]="selected == device"
-                [matTooltip]="device.name+' '+(device.ffd?'1':'0')"
-                matTooltipPosition="above"
-                matTooltipClass="device-size">
-            </div>
-        </ng-container>
-        <div class="gig-overlay">
-            <div class="gig"></div>
-            <div class="gig"></div>
-            <div class="gig"></div>
-            <div class="gig"></div>
-        </div>
-    </div>
-    <button mat-raised-button id="add" (click)="onAdd()"><i class="fas fa-plus"></i></button>
-    <div class="container" *ngIf="selected" @showHideTrigger>
-        <div class="group">
-            <button mat-raised-button id="move-left" (click)="moveSelectedLeft()" [disabled]="!canMoveSelectedLeft"><i class="fas fa-caret-left"></i></button>
-            <mat-form-field id="min" appearance="fill">
-                <mat-label>min</mat-label>
-                <input matInput (change)="onChange($event, 'min')" [(ngModel)]="selected.min_address_hex" minlength="8" maxlength="8" [disabled]="selected.name == 'EPROM'"/>
-            </mat-form-field>
-        </div>
-        <mat-form-field id="name" appearance="fill">
-            <mat-label>name</mat-label>
-            <input matInput (change)="onChange($event, 'name')" [(ngModel)]="selected.name" [disabled]="selected.name == 'EPROM'"/>
-        </mat-form-field>
-        <div class="group">
-            <mat-form-field id="max" appearance="fill">
-                <mat-label>max</mat-label>
-                <input matInput (change)="onChange($event, 'max')" [(ngModel)]="selected.max_address_hex" minlength="8" maxlength="8"/>
-            </mat-form-field>
-            <button mat-raised-button id="move-right" (click)="moveSelectedRight()" [disabled]="!canMoveSelectedRight"><i class="fas fa-caret-right"></i></button>
-        </div>
-    </div>
-    <button mat-raised-button *ngIf="selected" id="del" (click)="onDelete(selected)" [disabled]="selected.name == 'EPROM' || selected.name =='Start'" @showHideTrigger><i class="fas fa-trash"></i></button>
+<div class="btn-container">
+  <button *ngIf="selected!=null && selected.cs.length>0" mat-raised-button class="mr"
+    (click)="openDialogImage(selected)">
+    <span class="btn">Visualizza rete logica <i class="fa fa-code-branch"></i></span>
+  </button>
+  <div class="right">
+    <button mat-raised-button class="mr" (click)="openImageInterrupt()">
+      <span class="btn">Visualizza rete interrupt <i class="fa fa-bolt"></i></span>
+    </button>
+  </div>
 </div>
+<div class="main-container">
+  <div class="memory">
+    <ng-container *ngFor="let device of memoryService.memory.devices">
+      <img *ngIf="device.isALedNetwork()" class=" icon_absolute" width="40px"
+        [style.left]="((device.min_address/1073741824)*100).toFixed(2)-1.5+'%'"
+        src="{{device.getCsValue('CS_READ_LED') ? 'assets/img/led_on.png':'assets/img/led_off.png'}}" />
+        <img *ngIf="device.isAStartNetwork()" class=" icon_absolute" width="40px"
+          [style.left]="((device.min_address/1073741824)*100).toFixed(2)-1.5+'%'"
+          src="{{device.getCsValue('CS_READ_STARTUP') ? 'assets/img/led_on.png':'assets/img/led_off.png'}}" />
+      <!-- <mat-icon *ngIf="device.isALedNetwork()" 
+        aria-hidden="false" [ngClass]="{'amber': device.getCsValue('CS_READ_LED')}" class="icon_absolute"
+        aria-label="Example home icon">
+        highlight
+      </mat-icon> -->
+      <div class="dev" matRipple *ngIf="!isLN(device)"
+        [style.left]="((device.min_address/1073741824)*100).toFixed(2)+'%'"
+        [style.right]="(100 - (device.max_address/1073741824)*100).toFixed(2)+'%'"
+        (click)="selected == device ? selected = null : selected = device" [class.selected]="selected == device"
+        [matTooltip]="device.size" matTooltipPosition="above" matTooltipClass="device-size">
+
+        <span>{{ device.name }}</span>
+      </div>
+      <div class="ln" *ngIf="isLN(device)" [style.left]="((device.min_address/1073741824)*100).toFixed(2)+'%'"
+        (click)="selected == device ? selected = null : selected = device" [class.selected]="selected == device"
+        [matTooltip]="device.name +' '+(device.ffd?'1':'0')" matTooltipPosition="above" matTooltipClass="device-size">
+      </div>
+    </ng-container>
+    <div class="gig-overlay">
+      <div class="gig"></div>
+      <div class="gig"></div>
+      <div class="gig"></div>
+      <div class="gig"></div>
+    </div>
+  </div>
+  <button mat-raised-button id="add" [matMenuTriggerFor]="menuAdd"><i class="fas fa-plus"></i></button>
+  <div class="container" *ngIf="selected" @showHideTrigger>
+    <div class="group">
+      <button class="standard_margin_hor" mat-raised-button id="move-left" (click)="moveSelectedLeft()"
+        [disabled]="!canMoveSelectedLeft"><i class="fas fa-caret-left"></i></button>
+      <mat-form-field id="min" appearance="fill">
+        <mat-label>min</mat-label>
+        <input matInput (change)="onChange($event, 'min')" [(ngModel)]="selected.min_address_hex" minlength="8"
+          maxlength="8" [disabled]="selected.name == 'EPROM'" />
+      </mat-form-field>
+      <mat-form-field class="standard_margin_hor" id="name" appearance="fill">
+        <mat-label>name</mat-label>
+        <input matInput (change)="onChange($event, 'name')" [(ngModel)]="selected.name"
+          [disabled]="selected.name == 'EPROM'" />
+      </mat-form-field>
+    </div>
+
+    <div class="group" *ngIf="selected.cs.length > 0">
+      <mat-form-field appearance="fill">
+        <mat-label>Chip-Select</mat-label>
+        <mat-select [(value)]="selectedCS">
+          <mat-option *ngFor="let el of selected.cs" [value]="el">
+            {{el.id}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="standard_margin_hor" id="csAddr" appearance="fill"
+        *ngIf="selectedCS!=null && selectedCS.id.length>0">
+        <mat-label>address</mat-label>
+        <input matInput (change)="onChangeCS($event.target.value, selectedCS.id)" minlength="8"
+          [(value)]="selectedCS.hexAddress" maxlength="8" />
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="selected.devType=='RAM' || selected.devType=='EPROM'">
+      <mat-form-field appearance="fill">
+        <mat-label>Address Value</mat-label>
+        <input matInput [(ngModel)]="inputAddr" minlength="8" maxlength="8" />
+      </mat-form-field>
+      <button style="height:50px;position: relative;top: -10px;" mat-raised-button class="standard_margin_hor"
+        (click)="readMemoryAddressValues(inputAddr)">Show</button>
+    </div>
+    <div class="group">
+      <mat-form-field id="max" appearance="fill">
+        <mat-label>max</mat-label>
+        <input matInput (change)="onChange($event, 'max')" [(ngModel)]="selected.max_address_hex" minlength="8"
+          maxlength="8" />
+      </mat-form-field>
+      <button mat-raised-button id="move-right" (click)="moveSelectedRight()" [disabled]="!canMoveSelectedRight"><i
+          class="fas fa-caret-right"></i></button>
+    </div>
+  </div>
+  <button mat-raised-button *ngIf="selected" id="del" (click)="onDelete(selected)"
+    [disabled]="selected.name == 'EPROM' || selected.name =='Start'" @showHideTrigger><i class="fas fa-trash"></i>
+  </button>
+</div>
+<mat-menu #menuAdd="matMenu">
+  <button (click)="onAdd()" mat-menu-item>
+    <span>Memory</span>
+  </button>
+  <!-- <button mat-menu-item (click)="onAddFFD()">
+    <span>FF-D</span>
+  </button> -->
+  <button mat-menu-item (click)="onAddLed()">
+    <span>Led network</span>
+  </button>
+</mat-menu>

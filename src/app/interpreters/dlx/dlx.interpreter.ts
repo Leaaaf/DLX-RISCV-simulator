@@ -6,7 +6,10 @@ import { Interpreter } from '../interpreter';
 import { NotExistingInstructionError, WrongArgumentsError } from '../interpreter-errors';
 import { encoder, inputs_encoder } from './dlx.encoder';
 import { instructions, InstructionType, signExtend, specialRegisters } from './dlx.instructions';
+
 export class DLXInterpreter extends Interpreter{
+
+    private tmpReg : any;
 
     private readonly process_instruction: {
         [key in InstructionType]: 
@@ -93,6 +96,9 @@ export class DLXInterpreter extends Interpreter{
             if (args.length) throw new WrongArgumentsError(instruction, DLXDocumentation);
             func(registers);
             this.interruptEnabled = true;
+            (registers as DLXRegisters).ien = 0;
+
+            // registers.r = this.tmpReg;
         }
     }
 
@@ -171,6 +177,10 @@ export class DLXInterpreter extends Interpreter{
             (registers as DLXRegisters).iar = registers.pc;
             registers.pc = 0;
             this.interruptEnabled = false;
+            (registers as DLXRegisters).ien = 1;
+            // this.tmpReg = (registers as DLXRegisters).r;
+            // (registers as DLXRegisters).r = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        
         }
     }
 }

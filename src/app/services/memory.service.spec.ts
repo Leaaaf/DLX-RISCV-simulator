@@ -1,5 +1,5 @@
-import { TestBed } from '@angular/core/testing';
-import { MemoryService } from './memory.service';
+import {TestBed} from '@angular/core/testing';
+import {MemoryService} from './memory.service';
 
 
 describe('MemoryService', () => {
